@@ -1,0 +1,27 @@
+/*
+ * SystemComponentDetector.h
+ *
+ *  Created on: Sep 25, 2017
+ *      Author: hungnv103
+ */
+
+#ifndef SYSTEMCOMPONENTDETECTOR_H_
+#define SYSTEMCOMPONENTDETECTOR_H_
+
+#include <string>
+
+class SystemComponentDetector {
+public:
+	SystemComponentDetector();
+	virtual ~SystemComponentDetector();
+
+	static std::string getUk31Path();
+	static std::string getUk43Path();
+	static std::string getUk51Path();
+	static std::string getUk61Path();
+
+	static void *targetChecking(void *args);
+	static void run();
+};
+
+#endif /* SYSTEMCOMPONENTDETECTOR_H_ */

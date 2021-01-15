@@ -1,0 +1,46 @@
+/*
+ * DhlCommunicator.h
+ *
+ *  Created on: Sep 23, 2017
+ *      Author: hungnv103
+ */
+
+#ifndef DHLCOMMUNICATOR_H_
+#define DHLCOMMUNICATOR_H_
+
+#include "MessageQueues.h"
+#include <pthread.h>
+#include <string>
+class DhlCommunicator {
+public:
+	DhlCommunicator();
+	virtual ~DhlCommunicator();
+
+	void run();
+	void join();
+
+	int getReceivedMessage(C125Message &msg);
+	int transmitMessage(const C125Message &msg);
+
+	static void *listening(void *args);
+	static void *dataTransmiting(void *args);
+	static void *dataReceiving(void *args);
+
+private:
+	MessageQueues mReceivedMessageQueue;
+	MessageQueues mRespondMessageQueue;
+	pthread_mutex_t mWriteMessageLocker;
+	pthread_mutex_t mReadMessageLocker;
+	pthread_t mListeningConnectionThread;
+	pthread_t mDataTranssasionThread;
+	pthread_t mDataReceivingThread;
+
+	int mSocketId;
+	int mConnectionId;
+	pthread_mutex_t mConnectionLocker;
+
+	std::string mHostIp;
+	std::string mPort;
+};
+
+#endif /* DHLCOMMUNICATOR_H_ */

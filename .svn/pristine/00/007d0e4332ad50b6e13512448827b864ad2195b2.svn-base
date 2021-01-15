@@ -1,0 +1,26 @@
+/*
+ * C125DataProcessor.h
+ *
+ *  Created on: Sep 23, 2017
+ *      Author: hungnv103
+ */
+
+#ifndef C125DATAPROCESSOR_H_
+#define C125DATAPROCESSOR_H_
+
+#include "C125Communicator.h"
+#include "DhlCommunicator.h"
+
+class C125DataProcessor {
+public:
+	C125DataProcessor();
+	virtual ~C125DataProcessor();
+
+	void run();
+
+private:
+	DhlCommunicator mDhlComunicator;
+	C125Communicator mC125Communicator;
+};
+
+#endif /* C125DATAPROCESSOR_H_ */

@@ -1,0 +1,26 @@
+//============================================================================
+// Name        : C125Adapter.cpp
+// Author      : hungnv103
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
+#include <iostream>
+#include <unistd.h>
+#include "C125DataProcessor.h"
+#include "SystemConfigurations.h"
+using namespace std;
+
+#define CONFIGURE_FILE			"/root/C125Adapter/config.ini"
+
+int main() {
+	SystemConfigurations::getInstance()->init(CONFIGURE_FILE);
+	C125DataProcessor processor;
+	processor.run();
+	cout << "!!!Hello World!!!" << "size of long"<<sizeof(long)<<" size of int: " <<sizeof(int)<<endl; // prints !!!Hello World!!!
+	while(1){
+		usleep(1000);
+	}
+	return 0;
+}

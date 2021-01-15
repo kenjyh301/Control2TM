@@ -1,0 +1,47 @@
+/*
+ * FileReaderHelper.h
+ *
+ *  Created on: Sep 23, 2017
+ *      Author: hungnv103
+ */
+
+#ifndef FILEREADERHELPER_H_
+#define FILEREADERHELPER_H_
+
+#include <string>
+#include <stdio.h>
+
+class FileReaderHelper {
+public:
+	enum OFFSET_TYPE{
+		UK31_OFFSET = 0,
+		UK43_OFFSET = 2188,
+		UK51_OFFSET = 2064,
+		UK61_OFFSET = 1432
+	};
+	FileReaderHelper();
+	FileReaderHelper(std::string fileName,OFFSET_TYPE offset = UK31_OFFSET);
+	FileReaderHelper(char *fileName,OFFSET_TYPE offset = UK31_OFFSET);
+
+	virtual ~FileReaderHelper();
+
+	bool isValid();
+	void setFilName(std::string mFilName);
+
+	int writeToFile(char *data, const int length, const int offset);
+	int readFromFile(char *data, const int length, const int offset);
+	OFFSET_TYPE getMeOffset() const;
+
+	void setMeOffset(OFFSET_TYPE meOffset);
+
+	std::string mFilName;
+	OFFSET_TYPE meOffset;
+
+private:
+	FILE *openFile(std::string filePath);
+private:
+	//	std::string mFilName;
+	//	OFFSET_TYPE meOffset;
+};
+
+#endif /* FILEREADERHELPER_H_ */

@@ -1,0 +1,38 @@
+/*
+ * C125Communicator.h
+ *
+ *  Created on: Sep 23, 2017
+ *      Author: hungnv103
+ */
+
+#ifndef C125COMMUNICATOR_H_
+#define C125COMMUNICATOR_H_
+
+#include "FileReaderHelper.h"
+
+class C125Communicator {
+public:
+	C125Communicator();
+	virtual ~C125Communicator();
+
+	int assignTarget(float bear, float range);
+	int requestUpdateTrack(float bear, float range);
+	int deassignTarget();
+
+	int readSystemStatus();
+	int setATAInfo(float bear, float range, unsigned int height, unsigned int velocity);
+	int setLabelDefault();
+private:
+	int initFileWriter();
+	int getScaleMode(int *scale);
+	int setScaleMode(int scale);
+	int adjustScaleBaseOnRange(long range);
+private:
+	FileReaderHelper mUk51FileReader;
+	FileReaderHelper mUk31FileReader;
+	FileReaderHelper mUk61FileReader;
+	std::string mUk51DefaultStatus;
+	std::string mUk31DefaultStatus;
+};
+
+#endif /* C125COMMUNICATOR_H_ */
