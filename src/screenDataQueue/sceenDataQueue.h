@@ -17,7 +17,7 @@
 using namespace std;
 
 #define ELEMENT_SIZE 150
-#define QUEUE_MAX 10000
+#define QUEUE_MAX 5000
 
 class mTraceData{
 public:

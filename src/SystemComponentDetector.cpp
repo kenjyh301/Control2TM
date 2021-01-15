@@ -77,57 +77,6 @@ void *SystemComponentDetector::targetChecking(void *args){
 			if(strcmp(tmp,qnetProcess.c_str()) != 0 ){
 				qnetProcess = std::string(tmp);
 
-				{
-				///Get Uk43 process
-					std::stringstream getuk43Stream;
-					getuk43Stream << getProcess << qnetProcess << " -p "
-							<< uk43Process << filterCommand;
-					//						printf("-------%s------\n",getuk51Stream.str().c_str());/
-					FILE* pp43 = popen(getuk43Stream.str().c_str(), "r");
-					if (pp43 != NULL) {
-						char processName[32];
-						while (fgets(processName, sizeof(processName) - 1,
-								pp43) != NULL) {
-							std::string process(processName);
-							//								std::cout<<"process 51: "<<process<<std::endl;
-							if (process.find(uk43Process)
-									!= std::string::npos) {
-								std::stringstream path;
-								path << "/net/" << qnetProcess
-										<< sharedMemoryLocation;
-								uk43path = path.str();
-								//								printf("uk43 path: %s\n",uk43path.c_str());
-							}
-						}
-					}
-					pclose(pp43);
-				}
-
-				{
-					///Get Uk61 process
-					std::stringstream getuk61Stream;
-					getuk61Stream << getProcess << qnetProcess << " -p "
-							<< uk61Process << filterCommand;
-					//						printf("-------%s------\n",getuk61Stream.str().c_str());
-					FILE* pp61 = popen(getuk61Stream.str().c_str(), "r");
-					if (pp61 != NULL) {
-						char processName[32];
-						while (fgets(processName, sizeof(processName) - 1,
-								pp61) != NULL) {
-							std::string process(processName);
-							//								std::cout<<"process 61: "<<process<<std::endl;
-							if (process.find(uk61Process)
-									!= std::string::npos) {
-								std::stringstream path;
-								path << "/net/" << qnetProcess
-										<< sharedMemoryLocation;
-								uk61path = path.str();
-								//								printf("uk61 path: %s\n",uk61path.c_str());
-							}
-						}
-					}
-					pclose(pp61);
-				}
 				///Get Uk31 process
 				{
 					std::stringstream getuk31Stream;
@@ -149,7 +98,27 @@ void *SystemComponentDetector::targetChecking(void *args){
 					}
 					pclose(pp31);
 				}
-
+				{
+					///Get Uk43 process
+					std::stringstream getuk43Stream;
+					getuk43Stream<<getProcess<<qnetProcess<<" -p "<<uk43Process<<filterCommand;
+					//						printf("-------%s------\n",getuk51Stream.str().c_str());/
+					FILE* pp43 = popen(getuk43Stream.str().c_str(),"r");
+					if(pp43!=NULL){
+						char processName[32];
+						while (fgets(processName, sizeof(processName)-1, pp43) != NULL) {
+							std::string process(processName);
+							//								std::cout<<"process 51: "<<process<<std::endl;
+							if(process.find(uk43Process) != std::string::npos){
+								std::stringstream path;
+								path<<"/net/"<<qnetProcess<<sharedMemoryLocation;
+								uk43path = path.str();
+//								printf("uk43 path: %s\n",uk43path.c_str());
+							}
+						}
+					}
+					pclose(pp43);
+				}
 				{
 					///Get Uk51 process
 					std::stringstream getuk51Stream;
@@ -171,7 +140,27 @@ void *SystemComponentDetector::targetChecking(void *args){
 					}
 					pclose(pp51);
 				}
-
+				{
+					///Get Uk61 process
+					std::stringstream getuk61Stream;
+					getuk61Stream<<getProcess<<qnetProcess<<" -p "<<uk61Process<<filterCommand;
+					//						printf("-------%s------\n",getuk61Stream.str().c_str());
+					FILE* pp61 = popen(getuk61Stream.str().c_str(),"r");
+					if(pp61!=NULL){
+						char processName[32];
+						while (fgets(processName, sizeof(processName)-1, pp61) != NULL) {
+							std::string process(processName);
+							//								std::cout<<"process 61: "<<process<<std::endl;
+							if(process.find(uk61Process) != std::string::npos){
+								std::stringstream path;
+								path<<"/net/"<<qnetProcess<<sharedMemoryLocation;
+								uk61path = path.str();
+//								printf("uk61 path: %s\n",uk61path.c_str());
+							}
+						}
+					}
+					pclose(pp61);
+				}
 			}
 			}
 		}

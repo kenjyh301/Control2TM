@@ -120,31 +120,7 @@ void *DhlCommunicator::dataReceiving(void *args){
 					std::cout<<"Received one message from client with invalid header "<< receivedMessage.msgHeader <<std::endl;
 				}
 				pthread_mutex_unlock(&communicator->mReadMessageLocker);
-			}// test mode
-			else if(receivedSize==1){
-				if (receivedMessage.msgHeader[0] == 'a') {
-					ExTarget::getInstance()->setMode(EXSTART);
-					ExTarget::getInstance()->resetMap();
-					std::cout<<"enter start mode"<<endl;
-				}
-				if (receivedMessage.msgHeader[0] == 'b') {
-					ExTarget::getInstance()->setMode(EXSTOP);
-					ExTarget::getInstance()->resetMap();
-				}
-				if (receivedMessage.msgHeader[0] == 'c') {
-					ExTarget::getInstance()->setMode(EXHISTORY);
-					for(int i=0;i<ExTarget::getInstance()->getHistory().size;i++){
-					ExTarget::getInstance()->setMap(ExTarget::getInstance()->getHistory().pos[i].x,
-													ExTarget::getInstance()->getHistory().pos[i].y,
-													ExTarget::getInstance()->getHistory().pos[i].value,
-													EX_PLOT_SIZE);
-//						exHistory his= ExTarget::getInstance()->getHistory();
-//						ExTarget::getInstance()->setMap(3000,75,254,10);
-					}
-					std::cout<<"enter history mode"<<endl;
-				}
-			}
-			else {
+			} else {
 				//				std::cout<<"Received Failed,  message size: "<<receivedSize<<std::endl;
 				usleep(100);
 			}
@@ -167,10 +143,10 @@ void *DhlCommunicator::dataTransmiting(void *args)
 		printf("Parent mq_open failure");
 		exit(0);
 	}
-	///////////////////////////////////////////////////////////////////////////Edit by Minh
+	///////////////////////////////////////////////////////////////////////////
 	attr.mq_maxmsg=100;
 	attr.mq_msgsize=CAT48_LEN;
-/////////////////////////////////////////
+
 	target_mq_rece= mq_open("/target_mq1",O_RDWR|O_CREAT|O_NONBLOCK, 0777, &attr);
 	if(target_mq_rece==-1){
 		printf("open target_mq_rece error");
@@ -201,22 +177,18 @@ void *DhlCommunicator::dataTransmiting(void *args)
 				}
 			}
 		}
-//edit by Minh
-//		else if(communicator->mConnectionId >0 && communicator->mSocketId > 0 && (communicator->mRespondMessageQueue.isEmpty()==true))
+
 		else {
 			clock_gettime(CLOCK_REALTIME,&tm);
 			tm.tv_nsec+=50;
 			int status= mq_timedreceive(target_mq_rece,data_cat48,CAT48_LEN,0,&tm);
 			if(status!=-1){
-
-//				if(data_cat48[3]==34)printf(" Circle End\n");
-
 				int cat48_len;
 				if(communicator->mConnectionId>0&& communicator->mSocketId>0){
-//					cout<<"send target"<<endl;
+					cout<<"send target"<<endl;
 					cat48_len=send(communicator->mConnectionId,data_cat48,CAT48_LEN,MSG_NOSIGNAL);
 					if (cat48_len <= 0) {
-						printf("send target failure\n\n\n");
+						printf("send target failure\n\n\n\n");
 						pthread_mutex_lock(&communicator->mConnectionLocker);
 						close(communicator->mConnectionId);
 						communicator->mConnectionId = -1;
@@ -224,19 +196,13 @@ void *DhlCommunicator::dataTransmiting(void *args)
 						continue;
 					}
 					else{
-						uint16_t range= *(uint16_t*)(data_cat48+15);
-						uint16_t bear= *(uint16_t*)(data_cat48+17);
-						float r= (float)range*1852/256;
-						float b= (float)bear*360/65536;
-						printf("After %f   %f\n\n",r,b);
-						printf("send target success\n\n\n");
+						printf("send target success\n\n\n\n");
 					}
 				}
 				continue;
 			}
 		}
-//////////////end
-//		if(communicator->mConnectionId >0 && communicator->mSocketId > 0)
+
 		clock_gettime(CLOCK_REALTIME, &tm);
 		tm.tv_nsec += 50;
 		int status = mq_timedreceive(mqfd1, (char*) &ukData,

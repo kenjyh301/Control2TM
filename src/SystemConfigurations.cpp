@@ -57,8 +57,6 @@ void SystemConfigurations::init(std::string configFilePath){
 	num_of_line = iniparser_getint(ini,"feature:num_of_line",1);
 	std::cout<<"num_of_line: "<<num_of_line<<std::endl;
 
-	normal_color= iniparser_getint(ini,"feature:normal_color",253);
-	iff_color= iniparser_getint(ini,"feature:iff_color",254);
 }
 
 SystemConfigurations *SystemConfigurations::getInstance()
@@ -102,13 +100,3 @@ int SystemConfigurations::get_line_size(){
 int SystemConfigurations::get_num_of_line(){
 	return num_of_line;
 }
-
-int SystemConfigurations::get_normal_color(){
-	return normal_color;
-}
-
-int SystemConfigurations::get_iff_color(){
-	return iff_color;
-}
-
-

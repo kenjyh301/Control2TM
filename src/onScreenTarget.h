@@ -41,7 +41,6 @@ extern pthread_t tcp_data_thread;
 extern pthread_t data_thread;
 extern pthread_t detect_thread;
 extern pthread_t send_thread;
-extern pthread_t draw_thread;
 extern tcp_server* targetServer;
 extern tcp_server* dataServer;
 extern mqd_t target_mq;

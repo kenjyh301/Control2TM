@@ -14,7 +14,6 @@
 #include "SystemConfigurations.h"
 #include "MonitorProcessor.h"
 #include "onScreenTarget.h"
-#include "ExTarget.h"
 
 
 using namespace std;
@@ -27,7 +26,6 @@ pthread_mutex_t uk43MutexLock;
 
 void delete_queue (void) {
 	remove("/dev/mqueue/queue1");
-	remove("/dev/mqueue/target_mq1");
 }
 
 void setMutex(C125DataProcessor &Process, MonitorProcessor &c125Mon){

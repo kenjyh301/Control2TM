@@ -593,10 +593,6 @@
 </tool>
 <tool id="com.qnx.qcc.tool.linker.996792678" name="QCC Linker" superClass="com.qnx.qcc.tool.linker">
 <option id="com.qnx.qcc.option.linker.langcpp.227801119" name="C++ (-lang-c++)" superClass="com.qnx.qcc.option.linker.langcpp" value="true" valueType="boolean"/>
-<option id="com.qnx.qcc.option.linker.libraries.1912886335" superClass="com.qnx.qcc.option.linker.libraries" valueType="libs">
-<listOptionValue builtIn="false" value="socket"/>
-<listOptionValue builtIn="false" value="m"/>
-</option>
 <inputType id="com.qnx.qcc.inputType.linker.1592954120" superClass="com.qnx.qcc.inputType.linker">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>
