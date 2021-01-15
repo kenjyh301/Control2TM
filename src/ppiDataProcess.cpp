@@ -160,16 +160,17 @@ void* mdataRead(void*) {
 
 			if (datSp0.line_size != SystemConfigurations::getInstance()->get_line_size()) {
 				printf("Wrong line_size:");
-				printf("%d",datSp0.line_size);
+				printf("%d Expect:%d",datSp0.line_size,datSp0.line_size);
 //				std::exit(0);
 				usleep(100);
 				continue;
 			}
 
 			if (datSp0.num_of_line != SystemConfigurations::getInstance()->get_num_of_line()) {
-				printf("Wrong num of line %d %d",datSp0.num_of_line,SystemConfigurations::getInstance()->get_num_of_line());
+				printf("Wrong num of line %d Expect:%d\n",datSp0.num_of_line,SystemConfigurations::getInstance()->get_num_of_line());
 //				std::exit(0);
 				usleep(100);
+//				fread(data0+2+20,datSp0.line_size*datSp0.num_of_line,1,f);// 2 bytes AA55 +20 bytes header
 				continue;
 			}
 
@@ -209,13 +210,18 @@ void* mdataRead(void*) {
 			datSp1.az_pre = datSp1.az;
 
 			if (datSp1.line_size != SystemConfigurations::getInstance()->get_line_size()) {
-				printf("Wrong line_size");
-				std::exit(0);
+				printf("Wrong line_size:");
+				printf("%d Expect:%d",datSp1.line_size,datSp1.line_size);
+//				std::exit(0);
+				usleep(100);
+				continue;
 			}
 
 			if (datSp1.num_of_line != SystemConfigurations::getInstance()->get_num_of_line()) {
-				printf("Wrong num of line");
-				std::exit(0);
+				printf("Wrong num of line %d Expect:%d\n",datSp1.num_of_line,SystemConfigurations::getInstance()->get_num_of_line());
+//				std::exit(0);
+				usleep(100);
+				continue;
 			}
 
 			fread(data1+2+20, NUM_BYTES - 20, 1, f);
@@ -325,11 +331,11 @@ void* mDrawRadar(void*){
 	get_ppi51_source(a);
 	int line_size = 150;
 	int i100 = 100;
-	int num_of_line=1;
+	int num_of_line=9;
 	int msg_len = num_of_line * line_size + 20;
 	char* msg= new char[msg_len];
 	int az=0;
-	int mazd=10;
+	int mazd=10*num_of_line;
 
 	while(1){
 		if(!ExTarget::getInstance()->checkState()){
@@ -340,13 +346,19 @@ void* mDrawRadar(void*){
 			usleep(100);
 			continue;
 		}
+		memset(msg,0,msg_len);
 		memcpy(msg, &az, 4);
 		memcpy(msg + 4, &mazd, 4);
 		memcpy(msg + 8, &line_size, 4);
 		memcpy(msg + 12, &num_of_line, 4);
 		memcpy(msg + 16, &i100, 4);
 		pthread_mutex_lock(&ExTarget::getInstance()->exMapMutexLock);
-		memcpy(msg+20,ExTarget::getInstance()->getMap((int)(az/5999.0*MAP_AZI_MAX)),line_size);
+		for(int i=0;i<num_of_line;i++){
+			memcpy(msg+20+i*line_size,ExTarget::getInstance()->getMap((int)(az/5999.0*MAP_AZI_MAX)),line_size);
+			az+=10;
+			if(az>5999)az=0;
+		}
+
 		if (ExTarget::getInstance()->getMode() != EXSTOP){
 			int r = MsgSend(coid, msg, msg_len, 0, 0);
 			if (r == -1) {
@@ -359,9 +371,9 @@ void* mDrawRadar(void*){
 //			cout<<"."<<endl;
 		}
 		pthread_mutex_lock(&ExTarget::getInstance()->exMapMutexLock);
-		az+=mazd;
-		if(az>5999)az=0;
-		usleep(10000);
+//		az+=mazd;
+
+		usleep(40000);
 	}
 	delete[] msg;
 

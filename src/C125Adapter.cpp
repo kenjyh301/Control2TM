@@ -33,7 +33,7 @@ int main() {
 	setMutex(processor, c125Monitor);
 
 	processor.run();
-	c125Monitor.run();
+//	c125Monitor.run();
 
 	//edit by Minh
 	pthread_create(&tcp_targer_thread,NULL,mTargetServerConnect,(void*)targetServer);  // create server to send plot
@@ -46,7 +46,7 @@ int main() {
 	ExTarget::getInstance()->setMode(EXHISTORY);
 
 
-//	pthread_create(&draw_thread,NULL,mDrawRadar,NULL);
+	pthread_create(&draw_thread,NULL,mDrawRadar,NULL);
 
 /////////////////////////////
 	while(1){

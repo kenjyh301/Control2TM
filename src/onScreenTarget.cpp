@@ -177,25 +177,18 @@ void* mSendTarget(void*) {
 //				printf("\n\n%d\n\n",++c_q);
 			}
 			circleEnd = false;//handle done
+			pthread_mutex_unlock(&circle_end_lock);
+			usleep(10);
 			continue;// north marker higher priority to plot object
 		}
-		pthread_mutex_unlock(&circle_end_lock);
-		usleep(10);
 
 		//lock TCP server to send video data
 		pthread_mutex_lock(&server_connect_lock);
-		//convert range phase t o m and 360/2^16 degree
-//		const int scale_range = 1000;
+		//convert range phase to m and 360/2^16 degree
 		const float scale_phase = 65536.0 / 6000.0;
 		int line_size= SystemConfigurations::getInstance()->get_line_size();
 		uint32_t cat48_range = center_of_range*C125_SCALE*1000/line_size;
 		uint32_t cat48_phase = center_of_phase * scale_phase;
-
-		//		cat48_range=5000;
-		//		cat48_phase=7282;
-
-		//		printf("We are here:%hx %hx\n\n\n", cat48_range, cat48_phase);
-
 
 		coding_cat048_plot_report(cat48_phase, cat48_range, type, cat48,
 				msg_len);
@@ -204,26 +197,22 @@ void* mSendTarget(void*) {
 		clock_gettime(CLOCK_REALTIME, &tm);
 		tm.tv_nsec = 50;
 
-		//		int status= mq_timedsend(target_mq,(char*)*cat48,(unsigned int)*msg_len,0,&tm);
-
-//		cat48_full[0]=c_q;
-//		c_q++;
 		int status = mq_send(target_mq, (char*) cat48_full, CAT48_LEN, 0);
 		if (status < 0) {
 			printf("target_mq send failure %d\n", status);
 		} else {
-//			printf("\n\n%d\n\n",++c_q);
-			pthread_mutex_lock(&cat48_mutex);
+//			pthread_mutex_lock(&cat48_mutex);
 			uint16_t range = cat48_full[15] *256+cat48_full[16];
 			uint16_t bear = cat48_full[17] *256+cat48_full[18];
 			float r = (float) range * 1852 / 256;
 			float b = (float) bear * 360 / 65536;
 			for(int i=0;i<4;i++)printf("%hhx\t",cat48_full[15+i]);
 			printf("Before  %d  %f   %f\n",cat48_full[0], r, b);
-			pthread_mutex_unlock(&cat48_mutex);
+//			pthread_mutex_unlock(&cat48_mutex);
 			usleep(100000);
 			printf("target_mq send success cat48\n");
 		}
+		//send to port 5353
 		write(targetServer->connfd, *cat48, *msg_len);
 		target_ready = 0;
 		pthread_mutex_unlock(&server_connect_lock);

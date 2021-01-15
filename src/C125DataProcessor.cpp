@@ -22,7 +22,7 @@ C125DataProcessor::~C125DataProcessor() {
 
 void *C125DataProcessor::communicatorThreadRun(void *argc){
 		mDhlComunicator.run();
-		SystemComponentDetector::run();
+//		SystemComponentDetector::run();
 		C125Message receivedMessage;
 		std::cout << "size of C125Message: " << sizeof(C125Message) <<std::endl;
 		while(1 ){

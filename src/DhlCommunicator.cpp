@@ -162,111 +162,120 @@ void *DhlCommunicator::dataTransmiting(void *args)
 	attr.mq_maxmsg = 10;
 	struct timespec tm;
 	attr.mq_msgsize = sizeof(ukDataSend);
-	DhlCommunicator *communicator = (DhlCommunicator*)args;
-	mqfd1 = mq_open("/queue1", O_RDWR|O_CREAT|O_NONBLOCK, 0777, &attr);
-	if(mqfd1 == -1) {
+	DhlCommunicator *communicator = (DhlCommunicator*) args;
+	mqfd1 = mq_open("/queue1", O_RDWR | O_CREAT | O_NONBLOCK, 0777, &attr);
+	if (mqfd1 == -1) {
 		printf("Parent mq_open failure");
 		exit(0);
 	}
 	///////////////////////////////////////////////////////////////////////////Edit by Minh
-	attr.mq_maxmsg=100;
-	attr.mq_msgsize=CAT48_LEN;
-/////////////////////////////////////////
-	target_mq_rece= mq_open("/target_mq1",O_RDWR|O_CREAT|O_NONBLOCK, 0777, &attr);
-	if(target_mq_rece==-1){
+	attr.mq_maxmsg = 100;
+	attr.mq_msgsize = CAT48_LEN;
+	/////////////////////////////////////////
+	target_mq_rece = mq_open("/target_mq1", O_RDWR | O_CREAT | O_NONBLOCK,
+			0777, &attr);
+	if (target_mq_rece == -1) {
 		printf("open target_mq_rece error");
 		exit(0);
 	}
 
 	ukDataSend ukData;
-	char* data_cat48= new char[CAT48_LEN];
-	while(1){
-		if(communicator->mConnectionId >0 && communicator->mSocketId > 0 && (communicator->mRespondMessageQueue.isEmpty()==false)){
-			///Connection established
-			C125Message messageToSend;
-			pthread_mutex_lock(&communicator->mWriteMessageLocker);
-			int returnCode = communicator->mRespondMessageQueue.pop(messageToSend);
-			pthread_mutex_unlock(&communicator->mWriteMessageLocker);
-			if(ERR_SUCCESS == returnCode )
-			{
-				int sendLength = 0;
-				sendLength = send(communicator->mConnectionId,&messageToSend,sizeof(C125Message),MSG_NOSIGNAL);
-				if(sendLength <= 0 ){
-					///Send message Failed, close connection
-					std::cout<<"Transmit Failed, close connection"<<std::endl;
-					pthread_mutex_lock(&communicator->mConnectionLocker);
-					close(communicator->mConnectionId);
-					communicator->mConnectionId = -1;
-					pthread_mutex_unlock(&communicator->mConnectionLocker);
-					continue;
-				}
-			}
-		}
-//edit by Minh
-//		else if(communicator->mConnectionId >0 && communicator->mSocketId > 0 && (communicator->mRespondMessageQueue.isEmpty()==true))
-		else {
-			clock_gettime(CLOCK_REALTIME,&tm);
-			tm.tv_nsec+=50;
-
-			int status= mq_timedreceive(target_mq_rece,data_cat48,CAT48_LEN,0,&tm);
-			if(status!=-1){
-//				if(data_cat48[3]==34)printf(" Circle End\n");
-//				printf("\n\nReceive %d    %d\n\n",++c_q,status);
-				int cat48_len;
-				if(communicator->mConnectionId>0&& communicator->mSocketId>0){
-					cout<<"send target"<<endl;
-					cat48_len=send(communicator->mConnectionId,data_cat48,CAT48_LEN,MSG_NOSIGNAL);
-					if (cat48_len <= 0) {
-						printf("send target failure\n\n\n");
+	char* data_cat48 = new char[CAT48_LEN];
+	while (1) {
+		if (communicator->mConnectionId > 0 && communicator->mSocketId > 0) {
+			if ((communicator->mRespondMessageQueue.isEmpty() == false)) {
+				///Connection established
+				C125Message messageToSend;
+				pthread_mutex_lock(&communicator->mWriteMessageLocker);
+				int returnCode = communicator->mRespondMessageQueue.pop(
+						messageToSend);
+				pthread_mutex_unlock(&communicator->mWriteMessageLocker);
+				if (ERR_SUCCESS == returnCode) {
+					int sendLength = 0;
+					sendLength = send(communicator->mConnectionId,
+							&messageToSend, sizeof(C125Message), MSG_NOSIGNAL);
+					if (sendLength <= 0) {
+						///Send message Failed, close connection
+						std::cout << "Transmit Failed, close connection"
+								<< std::endl;
 						pthread_mutex_lock(&communicator->mConnectionLocker);
 						close(communicator->mConnectionId);
 						communicator->mConnectionId = -1;
 						pthread_mutex_unlock(&communicator->mConnectionLocker);
 						continue;
 					}
-					else{
-						pthread_mutex_lock(&cat48_mutex);
-						uint16_t range = data_cat48[15] *256+data_cat48[16];
-						uint16_t bear = data_cat48[17] *256+data_cat48[18];
-						float r = (float) range * 1852 / 256;
-						float b = (float) bear * 360 / 65536;
-						for(int i=0;i<4;i++)printf("%hhx\t",data_cat48[15+i]);
-						printf("After  %d  %f   %f\n",data_cat48[0], r, b);
-						printf("send target success\n\n\n");
-						pthread_mutex_unlock(&cat48_mutex);
-						usleep(100000);
-					}
 				}
-
-				continue;
 			}
-		}
-//////////////end
-//		if(communicator->mConnectionId >0 && communicator->mSocketId > 0)
-		clock_gettime(CLOCK_REALTIME, &tm);
-		tm.tv_nsec += 50;
-		int status = mq_timedreceive(mqfd1, (char*) &ukData,
-				sizeof(ukData) + 1, 0, &tm);
-		if (status == -1) {
-			//				cout << "mq_receive failure" << mqfd1 <<endl; // Chuyen luong doc queue sang thread khac
-			//				usleep(50000);
-		} else {
-			//				printf("mq_receive successful\n");
-			int sendLength = 0;
-			if (communicator->mConnectionId > 0 && communicator->mSocketId > 0) {
-				cout << "data send" << endl;
-				sendLength = send(communicator->mConnectionId, &ukData,
-						sizeof(ukDataSend), MSG_NOSIGNAL);
-				if (sendLength <= 0) {
-					pthread_mutex_lock(&communicator->mConnectionLocker);
-					close(communicator->mConnectionId);
-					communicator->mConnectionId = -1;
-					pthread_mutex_unlock(&communicator->mConnectionLocker);
+			//edit by Minh
+			else {
+				clock_gettime(CLOCK_REALTIME, &tm);
+				tm.tv_nsec += 50;
+
+				int status = mq_timedreceive(target_mq_rece, data_cat48,
+						CAT48_LEN, 0, &tm);
+				if (status != -1) {
+					//				if(data_cat48[3]==34)printf(" Circle End\n");
+					//				printf("\n\nReceive %d    %d\n\n",++c_q,status);
+					int cat48_len;
+					if (communicator->mConnectionId > 0
+							&& communicator->mSocketId > 0) {
+						cout << "send target" << endl;
+						cat48_len = send(communicator->mConnectionId,
+								data_cat48, CAT48_LEN, MSG_NOSIGNAL);
+						if (cat48_len <= 0) {
+							printf("send target failure\n\n\n");
+							pthread_mutex_lock(&communicator->mConnectionLocker);
+							close(communicator->mConnectionId);
+							communicator->mConnectionId = -1;
+							pthread_mutex_unlock(
+									&communicator->mConnectionLocker);
+							continue;
+						} else {
+							//						pthread_mutex_lock(&cat48_mutex);
+							uint16_t range = data_cat48[15] * 256
+									+ data_cat48[16];
+							uint16_t bear = data_cat48[17] * 256
+									+ data_cat48[18];
+							float r = (float) range * 1852 / 256;
+							float b = (float) bear * 360 / 65536;
+							for (int i = 0; i < 4; i++)
+								printf("%hhx\t", data_cat48[15 + i]);
+							printf("After  %d  %f   %f\n", data_cat48[0], r, b);
+							printf("send target success\n\n\n");
+							//						pthread_mutex_unlock(&cat48_mutex);
+							usleep(100000);
+						}
+					}
+
 					continue;
 				}
 			}
+			//////////////end
+			clock_gettime(CLOCK_REALTIME, &tm);
+			tm.tv_nsec += 50;
+			int status = mq_timedreceive(mqfd1, (char*) &ukData, sizeof(ukData)
+					+ 1, 0, &tm);
+			if (status == -1) {
+				//				cout << "mq_receive failure" << mqfd1 <<endl; // Chuyen luong doc queue sang thread khac
+				//				usleep(50000);
+			} else {
+				//				printf("mq_receive successful\n");
+				int sendLength = 0;
+				if (communicator->mConnectionId > 0 && communicator->mSocketId
+						> 0) {
+					cout << "data send" << endl;
+					sendLength = send(communicator->mConnectionId, &ukData,
+							sizeof(ukDataSend), MSG_NOSIGNAL);
+					if (sendLength <= 0) {
+						pthread_mutex_lock(&communicator->mConnectionLocker);
+						close(communicator->mConnectionId);
+						communicator->mConnectionId = -1;
+						pthread_mutex_unlock(&communicator->mConnectionLocker);
+						continue;
+					}
+				}
+			}
 		}
-
 	}
 	return NULL;
 }
