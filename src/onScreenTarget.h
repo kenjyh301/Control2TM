@@ -41,13 +41,16 @@ extern pthread_t tcp_data_thread;
 extern pthread_t data_thread;
 extern pthread_t detect_thread;
 extern pthread_t send_thread;
+extern pthread_t draw_thread;
 extern tcp_server* targetServer;
 extern tcp_server* dataServer;
 extern mqd_t target_mq;
+extern pthread_mutex_t cat48_mutex;
 
 extern unsigned int center_of_range;
 extern unsigned int center_of_phase;
 
+extern int C125_SCALE;
 
 
 void* mTargetServerConnect(void*);

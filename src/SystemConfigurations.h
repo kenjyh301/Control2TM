@@ -31,6 +31,8 @@ public:
 	int isVideo();
 	int get_line_size();
 	int get_num_of_line();
+	int get_normal_color();
+	int get_iff_color();
 
 private:
 	SystemConfigurations();
@@ -39,9 +41,12 @@ private:
 //	std::string mHostIp;
 	std::string mPort;
 	int find_char;
-	int enable_video;
+	int enable_video; // enable send video through tcp ip and save to write_data file in /root/minh_data in QNX 6.4
 	int num_of_line;
 	int line_size;
+
+	int normal_color;
+	int iff_color;
 
 };
 

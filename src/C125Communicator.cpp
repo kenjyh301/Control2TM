@@ -717,6 +717,7 @@ std::string C125Communicator::generateTrackSimulationData(bool isDefaultTrackDat
 				getNoiseMode(dataTrack.dangnhieu).c_str(),
 				(int) trackNum);
 	}
+
 	string rs(tmpRS, sizeof(tmpRS));
 	return rs;
 }
@@ -788,7 +789,8 @@ int C125Communicator::setTrackSimulationToIFile(TrackSimulation trackSimulation)
 							trackDataString = generateTrackSimulationData(false, i + 1, trackSimulation.trackData[i]);
 							fputs(trackDataString.c_str(), fNew);
 						} else {
-							if (i == iTrackCount - 1 ) {
+							//if (i == iTrackCount - 1 ) {
+							if(i<=iTrackCount - 1){
 								trackDataString = generateTrackSimulationData(false, i + 1, trackSimulation.trackData[i]);
 								fputs(trackDataString.c_str(), fNew);
 							} else {

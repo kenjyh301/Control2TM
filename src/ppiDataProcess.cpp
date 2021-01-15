@@ -31,9 +31,11 @@ struct dataSpec{
 
 int ppi51_pid = 0;
 int ppi51_chid = 0;
+int coid=-1;
+int nodeid=-1;
 
 const int header_size=20;
-
+bool excerciseMode= false;
 
 
 clock_t clk = 0, clk_pre = 0;
@@ -41,6 +43,10 @@ clock_t clk = 0, clk_pre = 0;
 pthread_mutex_t data_mutex;
 screenDataQueue scrQueue;
 
+void get_uk51_nodeid() {
+	nodeid = netmgr_strtond("uk51.", NULL);
+	printf("uk51 nodeid: %d\n", nodeid);
+}
 
 void get_ppi51_pid() {
 	char tmp[512];
@@ -51,19 +57,36 @@ void get_ppi51_pid() {
 	pclose(fp);
 }
 
+void connect_ppi51(){
+	coid = ConnectAttach(nodeid, ppi51_pid, ppi51_chid, _NTO_SIDE_CHANNEL, 0);
+	printf("coid: %d\n", coid);
+}
+
 void get_ppi51_source(char* s) {
+	get_uk51_nodeid();
 	get_ppi51_pid();
+	connect_ppi51();
+
+	if (nodeid <= 0) {
+		printf("get uk51 nodeID error\n");
+		return;
+	}
 	if (ppi51_pid <= 0) {
 		printf("get ppi51 pid error\n");
 		return;
 	}
+	if (coid <= 0) {
+		printf("Connect to uk51 error\n");
+		return;
+	}
+
+
 	sprintf(s, "//net//uk51.//proc//%d//as", ppi51_pid);
 	printf("data source file:%s\n");
 }
 
 void* mdataRead(void*) {
-	int NUM_BYTES= 20 + SystemConfigurations::getInstance()->get_line_size() * SystemConfigurations::getInstance()->get_num_of_line();
-
+//	int NUM_BYTES= 20 + SystemConfigurations::getInstance()->get_line_size() * SystemConfigurations::getInstance()->get_num_of_line();
 
 	uint8_t* data0 = new uint8_t[NUM_BYTES+2]; // 2 first bytes is AA55
 									// next 20 bytes is header: az(4),azdd(4),line_size(4), num_of_line(4), 4bytes reserve
@@ -71,8 +94,13 @@ void* mdataRead(void*) {
 	uint8_t* data1 = new uint8_t[NUM_BYTES+2];
 	printf("Num bytes: %d\n",NUM_BYTES);
 	char ppi51_as[50];
-	get_ppi51_source(ppi51_as);
-	FILE* f = fopen(ppi51_as, "r");
+	FILE* f;
+	while(f==NULL){
+		get_ppi51_source(ppi51_as);
+		f = fopen(ppi51_as, "r");
+		usleep(100);
+	}
+	FILE* f1;
 	//	FILE* f = fopen("//net//uk51.//proc//581669//as", "r");
 	if (f == NULL)
 		printf("open ppi51 as error\n");
@@ -92,6 +120,8 @@ void* mdataRead(void*) {
 
 	if(SystemConfigurations::getInstance()->isVideo()){
 		pthread_create(&tcp_data_thread,NULL,mTargetServerConnect,(void*)dataServer);
+
+		f1= fopen("//minh_data//write_data","w");
 	}
 
 	sleep(10);  //wait for system initialize
@@ -103,6 +133,13 @@ void* mdataRead(void*) {
 		//		usleep(SAMPLE_TIME-(clock()-clk));
 //		printf("%ld\n", clock() - clk);
 //		clk = clock();
+
+		if(!excerciseMode) {
+			usleep(100);
+// comment to develop feature. Uncomment for enabling check ecerciseMode
+//			continue;
+		}
+
 		memset(data0 + 2, 0, NUM_BYTES);
 		memset(data1 + 2, 0, NUM_BYTES);
 		fseek(f, (long int) DATA_BASE_0, SEEK_SET);
@@ -121,21 +158,28 @@ void* mdataRead(void*) {
 		if (datSp0.az != datSp0.az_pre) {
 			datSp0.az_pre = datSp0.az;
 
-			if (datSp0.line_size != 150) {
+			if (datSp0.line_size != SystemConfigurations::getInstance()->get_line_size()) {
 				printf("Wrong line_size:");
 				printf("%d",datSp0.line_size);
-				std::exit(0);
+//				std::exit(0);
+				usleep(100);
+				continue;
 			}
 
-			if (datSp0.num_of_line != 9) {
-				printf("Wrong num of line");
-				std::exit(0);
+			if (datSp0.num_of_line != SystemConfigurations::getInstance()->get_num_of_line()) {
+				printf("Wrong num of line %d %d",datSp0.num_of_line,SystemConfigurations::getInstance()->get_num_of_line());
+//				std::exit(0);
+				usleep(100);
+				continue;
 			}
 
-			fread(data0+2+20,NUM_BYTES-20,1,f);
+			fread(data0+2+20,NUM_BYTES-20,1,f);// 2 bytes AA55 +20 bytes header
 			if(SystemConfigurations::getInstance()->isVideo()){
 				write(dataServer->connfd,data0,NUM_BYTES+2);
+				fwrite(data0,NUM_BYTES+2,1,f1);
 			}
+
+
 
 
 
@@ -164,12 +208,12 @@ void* mdataRead(void*) {
 		if (datSp1.az != datSp1.az_pre) {
 			datSp1.az_pre = datSp1.az;
 
-			if (datSp1.line_size != 150) {
+			if (datSp1.line_size != SystemConfigurations::getInstance()->get_line_size()) {
 				printf("Wrong line_size");
 				std::exit(0);
 			}
 
-			if (datSp1.num_of_line != 9) {
+			if (datSp1.num_of_line != SystemConfigurations::getInstance()->get_num_of_line()) {
 				printf("Wrong num of line");
 				std::exit(0);
 			}
@@ -178,6 +222,7 @@ void* mdataRead(void*) {
 
 			if(SystemConfigurations::getInstance()->isVideo()){
 				write(dataServer->connfd,data1,NUM_BYTES+2);
+				fwrite(data1,NUM_BYTES+2,1,f1);
 			}
 
 
@@ -200,7 +245,7 @@ void* mdataRead(void*) {
 }
 
 void* mdataRead_from_file(void*) {
-	int NUM_BYTES= 20 + SystemConfigurations::getInstance()->get_line_size() * SystemConfigurations::getInstance()->get_num_of_line();
+//	int NUM_BYTES= 20 + SystemConfigurations::getInstance()->get_line_size() * SystemConfigurations::getInstance()->get_num_of_line();
 
 
 	uint8_t* data0 = new uint8_t[NUM_BYTES+2]; // 2 first bytes is AA55
@@ -272,4 +317,52 @@ void* mdataRead_from_file(void*) {
 		usleep(SLEEP_TIME);
 
 	}
+}
+
+
+void* mDrawRadar(void*){
+	char a[50];
+	get_ppi51_source(a);
+	int line_size = 150;
+	int i100 = 100;
+	int num_of_line=1;
+	int msg_len = num_of_line * line_size + 20;
+	char* msg= new char[msg_len];
+	int az=0;
+	int mazd=10;
+
+	while(1){
+		if(!ExTarget::getInstance()->checkState()){
+			usleep(100);
+			continue;
+		}
+		if(ExTarget::getInstance()->getMode() == EXSTOP){
+			usleep(100);
+			continue;
+		}
+		memcpy(msg, &az, 4);
+		memcpy(msg + 4, &mazd, 4);
+		memcpy(msg + 8, &line_size, 4);
+		memcpy(msg + 12, &num_of_line, 4);
+		memcpy(msg + 16, &i100, 4);
+		pthread_mutex_lock(&ExTarget::getInstance()->exMapMutexLock);
+		memcpy(msg+20,ExTarget::getInstance()->getMap((int)(az/5999.0*MAP_AZI_MAX)),line_size);
+		if (ExTarget::getInstance()->getMode() != EXSTOP){
+			int r = MsgSend(coid, msg, msg_len, 0, 0);
+			if (r == -1) {
+				printf("send fail\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+		if(ExTarget::getInstance()->getMode()!=EXHISTORY){
+			memset(ExTarget::getInstance()->getMap((int)(az/5999.0*MAP_AZI_MAX)),0,150);
+//			cout<<"."<<endl;
+		}
+		pthread_mutex_lock(&ExTarget::getInstance()->exMapMutexLock);
+		az+=mazd;
+		if(az>5999)az=0;
+		usleep(10000);
+	}
+	delete[] msg;
+
 }

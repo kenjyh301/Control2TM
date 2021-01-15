@@ -81,17 +81,41 @@ void *MonitorProcessor::readData(void *args) {
 		exit(0);
 	}
 
+	sleep(10);
+	std::cout<<"Read data ready"<<endl;
+
 	while(1) {
 
 		//		usleep(100000);
 
-		sleep(1);
 
+		sleep(1);
 		getPath();
 
 		///Read trigger condition first
+		int returnCode;
+
+		pthread_mutex_lock(uk51MutexLock);
+
+		returnCode = mUk51FileReader.readFromFile(uk51DataArray,
+				UK51DATALENGTH, 0);
+		pthread_mutex_unlock(uk51MutexLock);
+		if (returnCode != ERR_SUCCESS) {
+			cout << "Read file uk51 error" << endl;
+			usleep(500);
+			continue;
+		}
+		uint16_t data0 = (uint16_t) (*(uint16_t *) (uk51DataArray + 0x2c) >> 2)& 0x1ff;
+		if (data0 == 50)
+			C125_SCALE = data0;
+		else if (data0 == 100)
+			C125_SCALE = data0;
+		else if (data0 == 150)
+			C125_SCALE = data0;
+		printf("Scale is %d",C125_SCALE);
 		pthread_mutex_lock(uk43MutexLock);
-		int returnCode = mUk43FileReader.readFromFile(uk43DataArray, UK43DATALENGTH, 0);
+
+		returnCode= mUk43FileReader.readFromFile(uk43DataArray, UK43DATALENGTH, 0);
 		pthread_mutex_unlock(uk43MutexLock);
 		if( returnCode != ERR_SUCCESS ){
 			cout << "Read file uk43 error" << endl;
@@ -323,8 +347,10 @@ void *MonitorProcessor::readData(void *args) {
 			else if ((uk31Data.ratio & 0x03) == 0x02) {ukData.ratio = M80; }
 			else if ((uk31Data.ratio & 0x03) == 0x03) {ukData.ratio = M100; }
 
-			if ((uk31Data.mode & 0x08) == 0x08) { ukData.mode = CheDoLuyenTap; }
-			else if ((uk31Data.mode & 0x01) == 0x01) { ukData.mode = CheDoChienDau; }
+			if ((uk31Data.mode & 0x08) == 0x08) {
+				int8_t test= uk31Data.mode;// test variable not important
+				ukData.mode = CheDoLuyenTap;}
+			else if ((uk31Data.mode & 0x01) == 0x01) { ukData.mode = CheDoChienDau;}
 			else if ((uk31Data.mode & 0x02) == 0x02) { ukData.mode = CheDoKiemTraChucNang;}
 			else { ukData.mode == ChuaXacDinhCheDo; }
 
@@ -430,7 +456,10 @@ void *MonitorProcessor::readData(void *args) {
 //		ukData.numberRocketEncode = Mode2;
 		//				} while (0);
 
-		cout << "Size of message send: " << ukData.length << endl;
+		cout << "Size of message send: " << (ukData.length) << endl;
+
+		ExTarget::getInstance()->ExEnable(ukData.mode==CheDoChienDau);
+		excerciseMode = (ukData.mode==CheDoLuyenTap); // if exerciseMode==true read data from uk51 ppi51 as file to process plot
 
 		if (mqfd != -1) {
 			clock_gettime(CLOCK_REALTIME, &tm);

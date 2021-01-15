@@ -22,10 +22,16 @@
 #include <stdint.h>
 #include <math.h>
 
+#include <sys/neutrino.h>
+#include <sys/netmgr.h>
+#include <sys/dcmd_chr.h>
+
+
 #include "screenDataQueue/sceenDataQueue.h"
 #include "onScreenTarget.h"
+#include "ExTarget.h"
 
-//#define NUM_BYTES 1370
+#define NUM_BYTES 1370
 #define DATA_BASE_0		0x0804f08c
 #define DATA_BASE_1 	0x080586b4
 #define PORT 5353
@@ -37,12 +43,13 @@
 extern screenDataQueue scrQueue;
 extern int ppi51_pid;
 extern int ppi51_chid;
-
+extern bool excerciseMode;
 
 void* mdataRead_from_file(void*);
 void* mdataRead(void*);
 void print_current_data();
 
+void* mDrawRadar(void*);
 
 
 #endif /* PPIDATA_H_ */

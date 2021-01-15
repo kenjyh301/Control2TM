@@ -26,8 +26,9 @@ void get_elapsed_since_midnight(long long int *elapseSinceMidnight)
 	const long SECOND_TO_MICRO_SECOND_FACTOR = 1000000;
 	gettimeofday(&_timeSinceEpoch,NULL); // Get time from 01/01/1970
 
-	*elapseSinceMidnight = (_timeSinceEpoch.tv_sec/ONE_DAY_IN_SECOND); ///get elapsed since midnight in second
+	*elapseSinceMidnight = (_timeSinceEpoch.tv_sec%ONE_DAY_IN_SECOND); ///get elapsed since midnight in second
 	*elapseSinceMidnight = (*elapseSinceMidnight)*SECOND_TO_MICRO_SECOND_FACTOR + _timeSinceEpoch.tv_usec;
+//	printf("done");
 }
 
 void coding_cat240_video_message(unsigned char *video_data, int phase ,long sampling_rate, int range_in_point, unsigned char sp, unsigned char **cat240_message, int *message_length)

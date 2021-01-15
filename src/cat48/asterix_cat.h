@@ -151,6 +151,8 @@
  * 			message_length: the length of the asterix message in byte
  */
 
+void get_elapsed_since_midnight(long long int *elapseSinceMidnight);
+
 void coding_cat240_video_message(unsigned char *video_data, int phase, long sampling_rate, int range_in_point, unsigned char sp ,unsigned char **cat240_message, int *message_length);
 void coding_cat240_video_summary_message( unsigned char *summary, int summary_lenth, unsigned char **cat240_message, int *message_length);
 
